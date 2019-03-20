@@ -69,11 +69,11 @@ export default createRequst({
 ```
 
 
-### 使用实例
+### 使用示例
 ```js
 import request2 from '@/utils/request';
 
-
+// Promise
 request2('/api/file', {
     method: 'POST',
     data,
@@ -87,5 +87,24 @@ request2('/api/file', {
   }).then(([err, res]) => {
     console.log('res', err, res);
   })
+
+// async（推荐的方式）
+async function dome2() {
+  let [err, res] = request2('/api/file', {
+    method: 'POST',
+    data,
+    expirys: 10,  // 参数相同时缓存10秒
+    useServeMsg: true,  // 即使状态码为正确，依然使用服务器的msg进行反馈(请求发生错误时这是默认行为,当请求错误时会以后端返回的msg或请求状态码生成的错误信息进行返回)
+    // quiet: true,  // 静默模式，无论正确与否不会有任何提示
+    loading: {  // 设置loading
+      text: '加载中...',
+      mask: true
+    }
+  })
+  
+  if(err) return;   // 发生错误时内部会根据情况使用服务器错误信息或根据状态码生成的错误信息进行反馈，但是response依然会包含在err中返回，如果需要自己进行错误处理传递quiet配置项并自行根据err.response进行错误处理
+  
+  // 进行请求成功的操作
+}
 
 ```
