@@ -134,7 +134,7 @@ export default function createRequst(opt) {
     /* 过滤错误信息 */
     let quiet = err.config.quiet;
 
-    err = err.response;
+    err = err.response || {};
 
     /* 如果服务器有返回错误信息，用服务器的，否则根据status返回错误信息。*/
     let serverMsg = err.data && err.data[opt.serverMsgField];
