@@ -1,4 +1,5 @@
 import { stringify } from 'qs';
+/* 这是老版本的示例，新版的直接使用params配置项传递query */
 import request from '../utils/request';
 
 /**
