@@ -78,7 +78,7 @@ export default function createRequst(opt) {
       _option.data = JSON.stringify(_option.data);
     }
 
-    opt.startRequest(_option);
+    let loadingFlag = opt.startRequest(_option);
 
     // 发起请求，处理返回
     return axiosInstance({
@@ -89,7 +89,7 @@ export default function createRequst(opt) {
       .then(res => (expirys ? cachedSave(res, hashcode) : res))
       .then(res => [null, res.data])
       .catch(errHandle)
-      .finally(() => opt.finishRequest(_option));
+      .finally(() => opt.finishRequest(_option, loadingFlag));
   };
 
   /* 接收response，处理数据，根据配置进行某些操作 */

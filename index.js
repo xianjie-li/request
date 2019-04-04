@@ -31,10 +31,15 @@ export default createRequst({
         text: option.loading.text || 'loading...',
         mask: false
       });
+
+      // 某些loading控件会返回一个标识用来关闭，可以通过return返回后再finishRequest中接收
+      return message.loading(option.loading.text || 'loading...', 0);
     }
   },
+  /* flag是startRequest中return的值，一般用于关闭loading */
   finishRequest(option) {
     if(option.loading) {
+      loadingFlag();
       console.log('loading end');
     }
   }
