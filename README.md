@@ -1,28 +1,33 @@
-# 项目地址
-[github](https://github.com/qq1073830130)
+## Introduce
+基于axios进行请求的高阶函数。发起请求，返回错误和请求结果, 根据传入配置进行缓存、错误反馈、显示loading等,用于替代之前的fetch版本(fetch对上传进度，超时，取消请求等功能支持不完善或完全不支持)
 
 <br>
 
-# request
-基于axios进行请求的高阶函数，调用axios发起请求，返回错误和请求结果, 根据传入配置进行缓存、错误反馈、显示loading等,用于替代之前的fetch版本(fetch对上传进度，超时，取消请求等功能支持不完善或完全不支持)
+## Installation
+```shell
+npm install @lxjx/request
+// or
+yarn add @lxjx/request
+```
+
 
 <br>
 
-# Features
-* 与axios(option)方法使用完全一致, 但额外添加了一些便于使用的函数
+## Features
+* 与axios(option)方法使用完全一致, 但额外添加了一些便于使用的配置
 * 请求缓存。根据请求的url，option.body，option.params来对比两次请求，如果参数完全一致可使用可选的缓存选项进行接口缓存，重复请求直接输出相同的结果。
 * 通过简单的配置即可完全自动的处理请求错误。
 * 方便集成统一的请求前后loading与隐藏等。
 
-> 没有npm包，直接下载源码食用!
-
 <br>
 
-# 快速上手
+## 快速上手
 ### 根据项目进行配置
 ```js
+import createRequst from '@lxjx/request'
+
 /* 自定义配置 */
-export default createRequst({
+export const request = createRequst({
   /* axios相关 */
   baseURL: '', // 对应axios的baseURL
   timeout: 8000, // timeout
@@ -69,12 +74,12 @@ export default createRequst({
 ```
 
 
-### 使用示例
+### 使用
 ```js
-import request2 from '@/utils/request';
+import { request } from './xx/requst';
 
 // Promise
-request2('/api/file', {
+request('/api/file', {
     method: 'POST',
     data,
     expirys: 10,  // 参数相同时缓存10秒
@@ -90,7 +95,7 @@ request2('/api/file', {
 
 // async（推荐的方式）
 async function dome2() {
-  let [err, res] = request2('/api/file', {
+  let [err, res] = request('/api/file', {
     method: 'POST',
     data,
     expirys: 10,  // 参数相同时缓存10秒

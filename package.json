@@ -1,0 +1,24 @@
+{
+  "name": "@lxjx/request",
+  "version": "0.0.2",
+  "description": "",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "authors": {
+    "name": "lxj",
+    "email": "1073830130@qq.com"
+  },
+  "repository": "https://github.com/Iixianjie/request/",
+  "scripts": {
+    "dev": "umi-lib doc dev",
+    "build": "umi-lib build"
+  },
+  "peerDependencies": {
+    "axios": "0.x",
+    "hash.js": "1.x"
+  },
+  "devDependencies": {
+    "umi-library": "^1.1.1"
+  },
+  "license": "MIT"
+}
