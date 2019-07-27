@@ -109,7 +109,7 @@ export default function createRequst(opt) {
 
     /* 返回状态正确且配置需要使用服务端消息进行反馈 */
     if (!quiet && res.config.useServeMsg) {
-      opt.feedBack(res.data[opt.serverMsgField], true);
+      opt.feedBack(res.data[opt.serverMsgField], true, res.config);
     }
 
     return res;
@@ -137,10 +137,10 @@ export default function createRequst(opt) {
       /* 如果服务器有返回错误信息，用服务器的，否则根据status返回错误信息。*/
       let serverMsg = err.data && err.data[opt.serverMsgField];
 
-      !quiet && opt.feedBack(serverMsg || errMsg, false);
+      !quiet && opt.feedBack(serverMsg || errMsg, false, err.config);
     } else {
       /* 没有状态码、没有服务器返回、也不再捕获范围内(跨域、地址出错完全没有发送到服务器时会出现) */
-      opt.feedBack('未知错误', false)
+      opt.feedBack('未知错误', false, err.config)
     }
 
     /* TODO: 失败时将状态码传入某个错误回调中 */
