@@ -1,56 +1,8 @@
-import hash from 'hash.js';
+import _defineProperty from '@babel/runtime/helpers/esm/defineProperty';
 import axios from 'axios';
+import _get from 'lodash/get';
 
-function _defineProperty(obj, key, value) {
-  if (key in obj) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
-  }
-
-  return obj;
-}
-
-function ownKeys(object, enumerableOnly) {
-  var keys = Object.keys(object);
-
-  if (Object.getOwnPropertySymbols) {
-    var symbols = Object.getOwnPropertySymbols(object);
-    if (enumerableOnly) symbols = symbols.filter(function (sym) {
-      return Object.getOwnPropertyDescriptor(object, sym).enumerable;
-    });
-    keys.push.apply(keys, symbols);
-  }
-
-  return keys;
-}
-
-function _objectSpread2(target) {
-  for (var i = 1; i < arguments.length; i++) {
-    var source = arguments[i] != null ? arguments[i] : {};
-
-    if (i % 2) {
-      ownKeys(source, true).forEach(function (key) {
-        _defineProperty(target, key, source[key]);
-      });
-    } else if (Object.getOwnPropertyDescriptors) {
-      Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
-    } else {
-      ownKeys(source).forEach(function (key) {
-        Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
-      });
-    }
-  }
-
-  return target;
-}
-
-var codeMessage = {
+var statusCode = {
   200: '服务器成功返回请求的数据。',
   201: '新建或修改数据成功。',
   202: '一个请求已经进入后台排队（异步任务）。',
@@ -69,146 +21,160 @@ var codeMessage = {
   504: '网关超时。'
 };
 
-var defaultConfig = {
-  axiosInitConfig: {},
-  formatResponse: function formatResponse(res) {
-    return res;
-  },
-  feedBack: function feedBack() {},
-  startRequest: function startRequest() {},
-  finishRequest: function finishRequest() {}
-};
+function hashFnv32a(str) {
+  var i,
+      l,
+      hval = 0x811c9dc5;
 
-function createRequst(opt) {
-  opt = _objectSpread2({}, defaultConfig, {}, opt);
-  var axiosInstance = axios.create(_objectSpread2({}, opt.axiosInitConfig, {
+  for (i = 0, l = str.length; i < l; i++) {
+    hval ^= str.charCodeAt(i);
+    hval += (hval << 1) + (hval << 4) + (hval << 7) + (hval << 8) + (hval << 24);
+  }
+
+  return ("0000000" + (hval >>> 0).toString(16)).substr(-8);
+}
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function createRequest() {
+  var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  var axiosInstance = axios.create(_objectSpread({}, config.axiosBaseConfig, {
     headers: {
       'Content-Type': 'application/json;charset=UTF-8'
     }
   }));
 
   function request(url) {
-    var option = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    var reqOption = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    var option = reqOption.extraOption || {};
+    var quiet = !!option.quiet;
+    /* 缓存处理 (根据配置选项，为数字时取该数字的秒数，为truty时默认30秒) */
 
-    var _option = _objectSpread2({}, option);
-    /* 缓存 */
-
-
-    var expirys = _option.expirys && (typeof _option.expirys === 'number' ? _option.expirys : 30);
-    var fingerprint, hashcode;
+    var expirys = option.expirys && (typeof option.expirys === 'number' ? option.expirys : 30);
+    var fingerprint;
+    var hashcode;
 
     if (expirys) {
       /* 根据url + params + data 生成hash，用于缓存请求结果 */
 
-      /* 包含函数、formdata等特殊类型的data不能进行缓存 */
-      fingerprint = url + JSON.stringify(_option.data || {}) + JSON.stringify(_option.params || {});
-      hashcode = hash.sha256().update(fingerprint).digest('hex');
-      var cached = sessionStorage.getItem(hashcode);
-      var whenCached = sessionStorage.getItem("".concat(hashcode, ":timestamp"));
+      /* 包含函数、formdata等特殊类型的data不能进行缓存 (* 缓存只应该用于查询类的接口) */
+      fingerprint = url + JSON.stringify(reqOption.data || {}) + JSON.stringify(reqOption.params || {});
+      hashcode = hashFnv32a(fingerprint); // 尝试取出匹配到的缓存数据
 
-      if (cached !== null && whenCached !== null) {
-        var age = (Date.now() - whenCached) / 1000;
+      var cached = sessionStorage.getItem(hashcode);
+      var cachedTime = sessionStorage.getItem("".concat(hashcode, ":timestamp"));
+
+      if (cached && cachedTime) {
+        var age = (Date.now() - cachedTime) / 1000;
 
         if (age < expirys) {
+          // 缓存生效，添加isCache标记后原样返回
           var _cached = JSON.parse(cached);
 
           _cached.data.isCache = true;
-          checkResponse(_cached);
-          return Promise.resolve([null, _cached.data]);
-        }
+          console.log(_cached, config.plain);
+          return Promise.resolve([null, option.plain ? checkResponse(_cached) : config.formatResponse(checkResponse(_cached))]);
+        } // 缓存过期、清空
+
 
         sessionStorage.removeItem(hashcode);
         sessionStorage.removeItem("".concat(hashcode, ":timestamp"));
       }
     }
-    /* 非formdata时，将data转换为字符串 */
+    /* data不是FormData时，将data转换为JSON字符 */
 
 
-    if (_option.data && !(_option.data instanceof FormData)) {
-      _option.data = JSON.stringify(_option.data);
+    if (reqOption.data && !(reqOption.data instanceof FormData)) {
+      reqOption.data = JSON.stringify(reqOption.data);
     }
 
-    var loadingFlag = opt.startRequest(_option); // 发起请求，处理返回
-
-    return axiosInstance(_objectSpread2({
+    var requestConfig = _objectSpread({
       url: url
-    }, _option)).then(checkResponse).then(function (res) {
-      return expirys ? cachedSave(res, hashcode) : res;
+    }, reqOption);
+
+    var reqFlag = config.startRequest(option, requestConfig); // 发起请求并进行一系列处理
+
+    return axiosInstance(requestConfig).then(checkResponse).then(function (res) {
+      return expirys ? cache(res, hashcode) : res;
     }).then(function (res) {
-      return [null, opt.formatResponse ? opt.formatResponse(res) : res];
-    }).catch(errHandle).finally(function () {
-      return opt.finishRequest(_option, loadingFlag);
-    }); // 这里传入原配置
+      return [null, option.plain ? res : config.formatResponse(res)];
+    }) // 根据format配置处理数据
+    .catch(errorHandle).finally(function () {
+      return config.finishRequest(option, reqFlag);
+    });
+    /* 接收response，处理数据，根据配置进行某些操作 */
+
+    function checkResponse(response) {
+      if (!quiet) {
+        // 如果后端约定的返回值有异常则抛出错误
+        if (!config.checkStatus(response.data)) {
+          var error = new Error('出现错误了！！');
+          error.response = response;
+          throw error;
+        } // 返回正常但配置了useServeMsg且返回中包含message
+
+
+        if (option.useServeMsg) {
+          var message = _get(response, "data.".concat(config.serverMsgField));
+
+          message && config.feedBack(message, true, option);
+        }
+      } // 正常返回
+
+
+      return response;
+    }
+    /* 错误处理 */
+
+
+    function errorHandle(error) {
+      // 处理axios相关的错误码
+      if (error.code) {
+        if (error.code === 'ECONNABORTED') {
+          error.response = {
+            // 模拟一个超时的响应对象
+            status: 408
+          };
+        }
+      } // 包含响应体，根据状态码或服务端返回的data.message进行错误反馈
+
+
+      if (error.response) {
+        var response = error.response;
+        var message = statusCode[response.status] || '未知的错误码';
+        message = "".concat(response.status, ": message");
+
+        var serverMessage = _get(response, "data.".concat(config.serverMsgField));
+
+        !quiet && config.feedBack(serverMessage || message, false, option);
+      } else {
+        /* 没有状态码、没有服务器返回、也不在捕获范围内(跨域、地址出错完全没有发送到服务器时会出现) */
+        !quiet && config.feedBack(error.message || '未知错误', false, option);
+      }
+
+      return [error, null];
+    }
+    /* 缓存数据 */
+
+
+    function cache(res, hashcode) {
+      var contentType = res.headers['content-type'];
+
+      if (contentType && contentType.match(/application\/json/i)) {
+        sessionStorage.setItem(hashcode, JSON.stringify(res));
+        sessionStorage.setItem("".concat(hashcode, ":timestamp"), Date.now());
+      }
+
+      return res;
+    }
   }
-  /* 接收response，处理数据，根据配置进行某些操作 */
-
-  function checkResponse(res) {
-    var quiet = res.config.quiet || false;
-    /* 判断服务器是否主动声明错误, 是的话直接抛出 */
-
-    if (!quiet && res.data[opt.serverStatusField] && !opt.serverStatusIsSuccess(res.data[opt.serverStatusField])) {
-      var error = new Error('服务器自定义错误');
-      error.response = res;
-      error.config = res.config;
-      throw error;
-    }
-    /* 返回状态正确且配置需要使用服务端消息进行反馈 */
+  /* 暴露axios实例、返回request方法 */
 
 
-    if (!quiet && res.config.useServeMsg) {
-      opt.feedBack(res.data[opt.serverMsgField], true, res.config);
-    }
-
-    return res;
-  }
-  /* 对catch到的请求错误进行处理 */
-
-
-  function errHandle(err) {
-    /* 超时时手动生成错误返回对象 */
-    if (err.code && err.code === 'ECONNABORTED') {
-      err.response = {
-        status: 408
-      };
-    }
-
-    if (err.response) {
-      var res = err.response || {};
-      var errortext = codeMessage[res.status] || res.statusText;
-      var errMsg = "".concat(res.status, ": ").concat(errortext);
-      /* 过滤错误信息 */
-
-      var quiet = err.config.quiet || false;
-      err = err.response || {};
-      /* 如果服务器有返回错误信息，用服务器的，否则根据status返回错误信息。*/
-
-      var serverMsg = err.data && err.data[opt.serverMsgField];
-      !quiet && opt.feedBack(serverMsg || errMsg, false, err.config);
-    } else {
-      /* 没有状态码、没有服务器返回、也不再捕获范围内(跨域、地址出错完全没有发送到服务器时会出现) */
-      opt.feedBack('未知错误', false, err.config);
-    }
-    /* TODO: 失败时将状态码传入某个错误回调中 */
-
-
-    return [_objectSpread2({}, err), null];
-  }
-  /* 缓存数据到本地 */
-
-
-  function cachedSave(res, hashcode) {
-    var contentType = res.headers['content-type'];
-
-    if (contentType && contentType.match(/application\/json/i)) {
-      sessionStorage.setItem(hashcode, JSON.stringify(res));
-      sessionStorage.setItem("".concat(hashcode, ":timestamp"), Date.now());
-    }
-
-    return res;
-  }
-
-  request.instance = axiosInstance;
+  request.axios = axiosInstance;
   return request;
 }
 
-export default createRequst;
+export default createRequest;
