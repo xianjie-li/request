@@ -1,3 +1,7 @@
+interface AnyObj {
+  [key: string]: any
+}
+
 export interface extraOption {
   expirys: boolean | number
   useServeMsg: boolean
@@ -6,15 +10,17 @@ export interface extraOption {
 }
 
 export interface CreateOptions {
-  axiosBaseConfig?: object
+  axiosBaseConfig?: AnyObj
   serverMsgField: string
-  checkStatus(data: object): boolean
+  checkStatus(data: AnyObj): boolean
   feedBack?(message: string, status: boolean, extraOption: extraOption): void
-  formatResponse?(response: object): any
-  startRequest?(extraOption: extraOption, requestConfig: object): any
+  formatResponse?(response: AnyObj): any
+  startRequest?(extraOption: extraOption, requestConfig: AnyObj): any
   startRequest?(extraOption: extraOption, flag: any): void
-};
+}
 
-export function requset(url: string, options: object): Promise;
+export interface Request {
+  (url: string, options: AnyObj): Promise<any[]>
+}
 
-export default function createRequest(options: CreateOptions): request;
+export default function createRequest(options: CreateOptions): Request;
