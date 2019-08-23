@@ -134,7 +134,7 @@ function createRequest(config = {}) {
       if (error.response) {
         const response = error.response;
         let message = statusCode[response.status] || '未知的错误码';
-        message = `${response.status}: message`;
+        message = `${response.status}: ${message}`;
 
         const serverMessage = _get(response, `data.${config.serverMsgField}`);
         !quiet && config.feedBack(serverMessage || message, false, option);
