@@ -144,7 +144,7 @@ function createRequest() {
       if (error.response) {
         var response = error.response;
         var message = statusCode[response.status] || '未知的错误码';
-        message = "".concat(response.status, ": message");
+        message = "".concat(response.status, ": ").concat(message);
 
         var serverMessage = _get(response, "data.".concat(config.serverMsgField));
 
