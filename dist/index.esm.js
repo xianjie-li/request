@@ -1,6 +1,5 @@
 import _defineProperty from '@babel/runtime/helpers/esm/defineProperty';
 import axios from 'axios';
-import _get from 'lodash/get';
 
 var statusCode = {
   200: '服务器成功返回请求的数据。',
@@ -74,7 +73,6 @@ function createRequest() {
           var _cached = JSON.parse(cached);
 
           _cached.data.isCache = true;
-          console.log(_cached, config.plain);
           return Promise.resolve([null, option.plain ? checkResponse(_cached) : config.formatResponse(checkResponse(_cached))]);
         } // 缓存过期、清空
 
@@ -108,17 +106,16 @@ function createRequest() {
 
     function checkResponse(response) {
       if (!quiet) {
-        // 如果后端约定的返回值有异常则抛出错误
+        var message = response.data && response.data[config.serverMsgField]; // 如果后端约定的返回值有异常则抛出错误
+
         if (!config.checkStatus(response.data)) {
-          var error = new Error('出现错误了！！');
+          var error = new Error(message || 'server returned error');
           error.response = response;
           throw error;
         } // 返回正常但配置了useServeMsg且返回中包含message
 
 
         if (option.useServeMsg) {
-          var message = _get(response, "data.".concat(config.serverMsgField));
-
           message && config.feedBack(message, true, option);
         }
       } // 正常返回
@@ -131,27 +128,25 @@ function createRequest() {
 
     function errorHandle(error) {
       // 处理axios相关的错误码
-      if (error.code) {
-        if (error.code === 'ECONNABORTED') {
-          error.response = {
-            // 模拟一个超时的响应对象
-            status: 408
-          };
-        }
-      } // 包含响应体，根据状态码或服务端返回的data.message进行错误反馈
-
-
+      // if (error.code && error.isAxiosError) {
+      //   if (error.code === 'ECONNABORTED') {
+      //     // 模拟一个超时的响应对象
+      //     error.response = {
+      //       status: 408
+      //     };
+      //   }
+      // }
+      // 包含响应体，根据状态码或服务端返回的data.message进行错误反馈
       if (error.response) {
         var response = error.response;
-        var message = statusCode[response.status] || '未知的错误码';
-        message = "".concat(response.status, ": ").concat(message);
+        var message = statusCode[response.status] || 'unknown error code';
+        message = "".concat(response.status, ": ").concat(message); // 服务器状态码异常且包含serverMsgField
 
-        var serverMessage = _get(response, "data.".concat(config.serverMsgField));
-
+        var serverMessage = response.data && response.data[config.serverMsgField];
         !quiet && config.feedBack(serverMessage || message, false, option);
       } else {
         /* 没有状态码、没有服务器返回、也不在捕获范围内(跨域、地址出错完全没有发送到服务器时会出现) */
-        !quiet && config.feedBack(error.message || '未知错误', false, option);
+        !quiet && config.feedBack(error.message || 'unknown error', false, option);
       }
 
       return [error, null];
