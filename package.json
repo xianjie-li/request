@@ -20,9 +20,8 @@
   },
   "peerDependencies": {},
   "dependencies": {
-    "@babel/runtime": "*",
-    "axios": "*",
-    "lodash": "*"
+    "@babel/runtime": "^7.7.2",
+    "axios": "^0.19.0"
   },
   "license": "MIT"
 }

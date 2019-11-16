@@ -1,5 +1,5 @@
 /**
- * 调用axios发起请求，返回[err, res]形式的结果, 根据传入配置可进行缓存、配置化的错误反馈、显示loading、 挂token等。用于替代之前的fetch版本(fetch对一些复杂的请求场景如: 上传进度，超时，取消请求等功能支持不完善)
+ * 调用axios发起请求，返回[err, res]形式的结果, 根据传入配置可进行缓存、配置化的错误反馈、显示loading、 挂token等。
  *
  * @url  {string}   请求地址
  * @option?  {object}  传递给axios的option对象,下面的是除文档参数外新增的几个额外参数
@@ -15,13 +15,12 @@
  *
  * 依赖包:
  * axios、lodash/get
- * 
+ *
  * * 当服务端返回裸数据时，可以任意为serverMsgField设置一个字符值，此时根据状态码进行的错误反馈依然是可用的, 如果遇到连状态码码都乱给的后端的话...emmm
  */
 
 import axios from 'axios';
 import statusCode from './statusCode';
-import _get from 'lodash/get';
 import hashFnv32a from './hash';
 
 function createRequest(config = {}) {
@@ -63,7 +62,6 @@ function createRequest(config = {}) {
           // 缓存生效，添加isCache标记后原样返回
           let _cached = JSON.parse(cached);
           _cached.data.isCache = true;
-          console.log(_cached, config.plain);
           return Promise.resolve([
             null,
             option.plain
@@ -100,16 +98,17 @@ function createRequest(config = {}) {
     /* 接收response，处理数据，根据配置进行某些操作 */
     function checkResponse(response) {
       if (!quiet) {
+        const message = response.data && response.data[config.serverMsgField];
+
         // 如果后端约定的返回值有异常则抛出错误
         if (!config.checkStatus(response.data)) {
-          const error = new Error('出现错误了！！');
+          const error = new Error(message || 'server returned error');
           error.response = response;
           throw error;
         }
 
         // 返回正常但配置了useServeMsg且返回中包含message
         if (option.useServeMsg) {
-          const message = _get(response, `data.${config.serverMsgField}`);
           message && config.feedBack(message, true, option);
         }
       }
@@ -121,26 +120,28 @@ function createRequest(config = {}) {
     /* 错误处理 */
     function errorHandle(error) {
       // 处理axios相关的错误码
-      if (error.code) {
-        if (error.code === 'ECONNABORTED') {
-          error.response = {
-            // 模拟一个超时的响应对象
-            status: 408
-          };
-        }
-      }
+      // if (error.code && error.isAxiosError) {
+      //   if (error.code === 'ECONNABORTED') {
+      //     // 模拟一个超时的响应对象
+      //     error.response = {
+      //       status: 408
+      //     };
+      //   }
+      // }
 
       // 包含响应体，根据状态码或服务端返回的data.message进行错误反馈
       if (error.response) {
         const response = error.response;
-        let message = statusCode[response.status] || '未知的错误码';
+        let message = statusCode[response.status] || 'unknown error code';
         message = `${response.status}: ${message}`;
 
-        const serverMessage = _get(response, `data.${config.serverMsgField}`);
+        // 服务器状态码异常且包含serverMsgField
+        const serverMessage = response.data && response.data[config.serverMsgField];
+
         !quiet && config.feedBack(serverMessage || message, false, option);
       } else {
         /* 没有状态码、没有服务器返回、也不在捕获范围内(跨域、地址出错完全没有发送到服务器时会出现) */
-        !quiet && config.feedBack(error.message || '未知错误', false, option);
+        !quiet && config.feedBack(error.message || 'unknown error', false, option);
       }
 
       return [error, null];
