@@ -11,7 +11,7 @@ let request = createRequest({
   },
 
   /* 服务端约定配置 */
-  serverMsgField: 'message', // 服务端返回的消息提示所在的属性名, 支持.链接 如 xxx.message
+  serverMsgField: 'message', // 服务端返回的消息提示所在的属性名
   checkStatus(data) {
     // 接收服务端返回并根据约定的属性名返回一个bool值帮助判定本次请求成功与否
     return data.status === true;
