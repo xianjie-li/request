@@ -1,9 +1,5 @@
 import { AxiosRequestConfig, AxiosInstance } from 'axios';
 
-interface AnyObj {
-  [key: string]: any
-}
-
 interface extraOption {
   /** 设置缓存时间，值为true时缓存30s，为数字时表示指定的秒数。 */
   expirys: boolean | number
@@ -13,6 +9,8 @@ interface extraOption {
   quiet: boolean
   /** 用原始的response代替经过format函数的response */
   plain: boolean
+  /** 是否显示加载 */
+  loading: boolean | string
 }
 
 
@@ -21,16 +19,16 @@ interface CreateOptions {
 
   /* 服务端约定配置 */
   serverMsgField: string // 服务端返回的消息提示所在的属性名
-  checkStatus(data: AnyObj): boolean
+  checkStatus(data: any): boolean
 
   feedBack?(message: string, status: boolean, extraOption: extraOption): void
-  formatResponse?(response: AnyObj): any
+  formatResponse?(response: any): any
   startRequest?(extraOption: extraOption, requestConfig: AxiosRequestConfig & { extraOption: extraOption }): any
   finishRequest?(extraOption: extraOption, flag?: any): void
 }
 
 interface Request {
-  (url: string, options: AxiosRequestConfig & { extraOption: extraOption }): Promise<[any, any]>;
+  (url: string, options: AxiosRequestConfig & { extraOption?: Partial<extraOption> }): Promise<[any, any]>;
   axiosInstance: AxiosInstance;
 }
 
