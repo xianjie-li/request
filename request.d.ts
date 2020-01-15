@@ -28,7 +28,7 @@ interface CreateOptions {
 }
 
 interface Request {
-  (url: string, options: AxiosRequestConfig & { extraOption?: Partial<extraOption> }): Promise<[any, any]>;
+  (url: string, options?: AxiosRequestConfig & { extraOption?: Partial<extraOption> }): Promise<[any, any]>;
   axiosInstance: AxiosInstance;
 }
 
