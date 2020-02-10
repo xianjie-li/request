@@ -15,15 +15,19 @@ interface extraOption {
 
  
 interface CreateOptions {
+  /** axios相关配置 */
   axiosBaseConfig?: AxiosRequestConfig
-
-  /* 服务端约定配置 */
-  serverMsgField: string // 服务端返回的消息提示所在的属性名
+  /** 服务端返回的消息提示所在的属性名 */
+  serverMsgField: string
+  /** 接收服务器response，需要返回一个boolean值用于验证该次请求时候成功 */
   checkStatus(data: any): boolean
-
+  /** 自定义反馈方式 */
   feedBack?(message: string, status: boolean, extraOption: extraOption): void
+  /** 格式化response */
   formatResponse?(response: any): any
+  /** 请求开始 */
   startRequest?(extraOption: extraOption, requestConfig: AxiosRequestConfig & { extraOption: extraOption }): any
+  /** 请求结束 */
   finishRequest?(extraOption: extraOption, flag?: any): void
 }
 
