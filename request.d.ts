@@ -11,6 +11,8 @@ interface extraOption {
   plain: boolean
   /** 是否显示加载 */
   loading: boolean | string
+  /** 用于传递其他额外配置时，如 hasToken */
+  [key: string]: any;
 }
 
  
@@ -27,7 +29,7 @@ interface CreateOptions {
   formatResponse?(response: any): any
   /** 请求开始 */
   startRequest?(extraOption: extraOption, requestConfig: AxiosRequestConfig & { extraOption: extraOption }): any
-  /** 请求结束 */
+  /** 请求结束, flag是startRequest方法的返回值 */
   finishRequest?(extraOption: extraOption, flag?: any): void
 }
 
