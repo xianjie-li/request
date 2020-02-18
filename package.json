@@ -16,11 +16,14 @@
     "build": "father build"
   },
   "devDependencies": {
-    "father": "^2.14.0"
+    "express": "^4.17.1",
+    "father": "^2.14.0",
+    "nodemon": "^2.0.2"
   },
   "peerDependencies": {},
   "dependencies": {
     "@babel/runtime": "^7.7.2",
+    "@lxjx/utils": "^1.1.7",
     "axios": "^0.19.0"
   },
   "license": "MIT"
