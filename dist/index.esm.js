@@ -1,3 +1,4 @@
+import _slicedToArray from '@babel/runtime/helpers/esm/slicedToArray';
 import _defineProperty from '@babel/runtime/helpers/esm/defineProperty';
 import axios from 'axios';
 
@@ -37,8 +38,29 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
+function getGlobal() {
+  return typeof window !== 'undefined' ? window : global;
+}
+
+var dumpFn = function dumpFn() {};
+
+var defaultConf = {
+  axiosBaseConfig: {},
+  formatResponse: function formatResponse(response) {
+    return response;
+  },
+  startRequest: dumpFn,
+  finishRequest: dumpFn,
+  feedBack: dumpFn
+};
+
 function createRequest() {
-  var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  var _config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+  var config = _objectSpread({}, defaultConf, {}, _config);
+  /* axios预设 */
+
+
   var axiosInstance = axios.create(_objectSpread({}, config.axiosBaseConfig, {
     headers: {
       'Content-Type': 'application/json;charset=UTF-8'
@@ -47,33 +69,47 @@ function createRequest() {
 
   function request(url) {
     var reqOption = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    var option = reqOption.extraOption || {};
+    var option = reqOption.extraOption || {}; // 一些配置提前提出来
+
     var quiet = !!option.quiet;
-    /* 缓存处理 (根据配置选项，为数字时取该数字的秒数，为truty时默认30秒) */
+    var formatResponse = option.formatResponse || config.formatResponse;
+    var feedBack = option.feedBack || config.feedBack;
+    var startRequest = option.startRequest || config.startRequest;
+    var finishRequest = option.finishRequest || config.finishRequest;
+    var checkStatus = option.checkStatus || config.checkStatus;
+    var serverMsgField = option.serverMsgField || config.serverMsgField;
+    var ptGlobal = getGlobal();
+    /* ------- 缓存处理 (根据配置选项，为数字时取该数字的秒数，为truty时默认30秒) ------- */
 
     var expirys = option.expirys && (typeof option.expirys === 'number' ? option.expirys : 30);
-    var fingerprint;
-    var hashcode;
+    var fingerprint; // 根据当前请求参数、地址生成唯一串作为令牌
+
+    var hashcode; // 根据fingerprint生成hash
 
     if (expirys) {
-      /* 根据url + params + data 生成hash，用于缓存请求结果 */
+      /* 根据url + params + data (针对不使用params的后端) 生成hash，用于缓存请求结果 */
 
-      /* 包含函数、formdata等特殊类型的data不能进行缓存 (* 缓存只应该用于查询类的接口) */
+      /* 包含函数、formData等特殊类型的data不能进行缓存 (* 缓存只应该用于查询类的接口) */
       fingerprint = url + JSON.stringify(reqOption.data || {}) + JSON.stringify(reqOption.params || {});
-      hashcode = hashFnv32a(fingerprint); // 尝试取出匹配到的缓存数据
+      hashcode = hashFnv32a(fingerprint);
+      /* 尝试取出匹配到的缓存数据 */
 
-      var cached = sessionStorage.getItem(hashcode);
-      var cachedTime = sessionStorage.getItem("".concat(hashcode, ":timestamp"));
+      var cached = ptGlobal.sessionStorage.getItem(hashcode);
+      var cachedTime = ptGlobal.sessionStorage.getItem("".concat(hashcode, ":timestamp"));
 
       if (cached && cachedTime) {
-        var age = (Date.now() - cachedTime) / 1000;
+        // 当前时间到缓存结束时间差值
+        var age = (Date.now() - cachedTime) / 1000; // 缓存生效，添加isCache标记后原样返回
 
         if (age < expirys) {
-          // 缓存生效，添加isCache标记后原样返回
           var _cached = JSON.parse(cached);
 
-          _cached.data.isCache = true;
-          return Promise.resolve([null, option.plain ? checkResponse(_cached) : config.formatResponse(checkResponse(_cached))]);
+          if (_cached) {
+            _cached.data.isCache = true;
+            return Promise.resolve([null, option.plain ? checkResponse(_cached) : formatResponse(checkResponse(_cached), option, reqOption)
+            /* TODO: 添加自定义缓存, 传递的配置 */
+            ]);
+          }
         } // 缓存过期、清空
 
 
@@ -90,25 +126,28 @@ function createRequest() {
 
     var requestConfig = _objectSpread({
       url: url
-    }, reqOption);
+    }, reqOption); // 接收startRequest返回值传递给finishRequest, 用于结束loading等
 
-    var reqFlag = config.startRequest(option, requestConfig); // 发起请求并进行一系列处理
+
+    var reqFlag = startRequest(option, reqOption); // 发起请求并进行一系列处理
 
     return axiosInstance(requestConfig).then(checkResponse).then(function (res) {
       return expirys ? cache(res, hashcode) : res;
-    }).then(function (res) {
-      return [null, option.plain ? res : config.formatResponse(res)];
+    }) // 到这一步已经成功了
+    .then(function (res) {
+      return [null, option.plain ? res : formatResponse(res, option, reqOption)];
     }) // 根据format配置处理数据
     .catch(errorHandle).finally(function () {
-      return config.finishRequest(option, reqFlag);
+      return finishRequest(option, reqFlag);
     });
     /* 接收response，处理数据，根据配置进行某些操作 */
 
     function checkResponse(response) {
       if (!quiet) {
-        var message = response.data && response.data[config.serverMsgField]; // 如果后端约定的返回值有异常则抛出错误
+        // 根据配置取出对应的message字段
+        var message = response.data && response.data[serverMsgField]; // 如果后端约定的返回值有异常则抛出错误
 
-        if (!config.checkStatus(response.data)) {
+        if (!checkStatus(response.data)) {
           var error = new Error(message || 'server returned error');
           error.response = response;
           throw error;
@@ -116,7 +155,7 @@ function createRequest() {
 
 
         if (option.useServeMsg) {
-          message && config.feedBack(message, true, option);
+          message && feedBack(message, true, option, reqOption);
         }
       } // 正常返回
 
@@ -126,7 +165,9 @@ function createRequest() {
     /* 错误处理 */
 
 
-    function errorHandle(error) {
+    function errorHandle() {
+      var error = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
       // 处理axios相关的错误码
       // if (error.code && error.isAxiosError) {
       //   if (error.code === 'ECONNABORTED') {
@@ -142,11 +183,11 @@ function createRequest() {
         var message = statusCode[response.status] || 'unknown error code';
         message = "".concat(response.status, ": ").concat(message); // 服务器状态码异常且包含serverMsgField
 
-        var serverMessage = response.data && response.data[config.serverMsgField];
-        !quiet && config.feedBack(serverMessage || message, false, option);
+        var serverMessage = response.data && response.data[serverMsgField];
+        !quiet && feedBack(serverMessage || message, false, option);
       } else {
         /* 没有状态码、没有服务器返回、也不在捕获范围内(跨域、地址出错完全没有发送到服务器时会出现) */
-        !quiet && config.feedBack(error.message || 'unknown error', false, option);
+        !quiet && feedBack(error.message || 'unknown error', false, option);
       }
 
       return [error, null];
@@ -158,13 +199,35 @@ function createRequest() {
       var contentType = res.headers['content-type'];
 
       if (contentType && contentType.match(/application\/json/i)) {
-        sessionStorage.setItem(hashcode, JSON.stringify(res));
-        sessionStorage.setItem("".concat(hashcode, ":timestamp"), Date.now());
+        ptGlobal.sessionStorage.setItem(hashcode, JSON.stringify(res));
+        ptGlobal.sessionStorage.setItem("".concat(hashcode, ":timestamp"), String(Date.now()));
       }
 
       return res;
     }
   }
+
+  request.common = function () {
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    return new Promise(function (resolve, reject) {
+      request.apply(void 0, args).then(function (_ref) {
+        var _ref2 = _slicedToArray(_ref, 2),
+            err = _ref2[0],
+            res = _ref2[1];
+
+        if (err) {
+          reject(err);
+        }
+
+        resolve(res);
+      }).catch(function (err) {
+        return reject(err);
+      });
+    });
+  };
   /* 暴露axios实例、返回request方法 */
 
 

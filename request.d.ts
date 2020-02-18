@@ -52,10 +52,10 @@ export interface FullOptions extends AxiosRequestConfig {
 /**
  * 用于请求的request函数
  * @param url - 请求地址
- * @param options - 配置项、与axios完全相同，当添加了额外的extraOption选项
+ * @param options - 配置项、与axios完全相同，除了添加额外的extraOption选项
  * @return 一个Promise，当resolve时，会得到一个错误优先的数组 [error, data]
  * @static axiosInstance - axios实例
- * @static common - 常规的Promise版本request，不返回错误优先数组
+ * @static common - 常规的Promise版本request，不返回错误优先数组而是常规Promise对象
  * */
 export interface Request {
   <Data = any>
