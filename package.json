@@ -1,6 +1,6 @@
 {
   "name": "@lxjx/request",
-  "version": "0.22.0",
+  "version": "0.22.1",
   "description": "eazy http request",
   "main": "dist/index.esm.js",
   "module": "dist/index.esm.js",
@@ -13,7 +13,8 @@
   "scripts": {
     "dev": "father doc dev",
     "build:doc": "father doc build",
-    "build": "father build"
+    "build": "father build",
+    "mock": "nodemon ./mock"
   },
   "devDependencies": {
     "express": "^4.17.1",
