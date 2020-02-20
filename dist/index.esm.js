@@ -124,14 +124,11 @@ function createRequest() {
       reqOption.data = JSON.stringify(reqOption.data);
     }
 
-    var requestConfig = _objectSpread({
-      url: url
-    }, reqOption); // 接收startRequest返回值传递给finishRequest, 用于结束loading等
-
+    reqOption.url = url; // 接收startRequest返回值传递给finishRequest, 用于结束loading等
 
     var reqFlag = startRequest(option, reqOption); // 发起请求并进行一系列处理
 
-    return axiosInstance(requestConfig).then(checkResponse).then(function (res) {
+    return axiosInstance(reqOption).then(checkResponse).then(function (res) {
       return expirys ? cache(res, hashcode) : res;
     }) // 到这一步已经成功了
     .then(function (res) {

@@ -97,16 +97,13 @@ function createRequest(_config = {}) {
       reqOption.data = JSON.stringify(reqOption.data);
     }
 
-    const requestConfig = {
-      url,
-      ...reqOption
-    };
+    reqOption.url = url;
 
     // 接收startRequest返回值传递给finishRequest, 用于结束loading等
     let reqFlag = startRequest(option, reqOption);
 
     // 发起请求并进行一系列处理
-    return axiosInstance(requestConfig)
+    return axiosInstance(reqOption)
       .then(checkResponse)
       .then(res => (expirys ? cache(res, hashcode) : res))
       // 到这一步已经成功了
