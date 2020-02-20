@@ -64,7 +64,10 @@ export interface Request {
     options?: FullOptions
   ): Promise<[any, Data]>;
   axiosInstance: AxiosInstance;
-  common: <Data = any>() => Promise<Data>
+  common: <Data = any>(
+    url: string,
+    options?: FullOptions
+  ) => Promise<Data>
 }
 
 export default function createRequest(options: CreateOptions): Request;
