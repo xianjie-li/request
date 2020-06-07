@@ -1,0 +1,51 @@
+{
+  "name": "@lxjx/request",
+  "description": "request is easy",
+  "keywords": [
+    "request",
+    "fetch",
+    "axios"
+  ],
+  "version": "1.0.1",
+  "main": "./umd/index.js",
+  "module": "./esm/index.js",
+  "types": "./dist",
+  "repository": "https://github.com/Iixianjie/request",
+  "author": {
+    "name": "lxj",
+    "email": "1073830130@qq.com"
+  },
+  "license": "MIT",
+  "files": [
+    "./esm",
+    "./umd"
+  ],
+  "scripts": {
+    "prebuild": "npm run lint && rimraf ./esm ./umd",
+    "build": "npm run build:esm && npm run build:umd",
+    "build:esm": "tsc",
+    "build:umd": "tsc -m UMD --outDir ./umd --declarationDir ./umd",
+    "dev": "parcel ./index.html",
+    "watch": "tsc -w",
+    "mock": "nodemon ./mock",
+    "lint:script": "eslint ./src --ext .js,.jsx,.ts,.tsx",
+    "lint:prettier": "prettier --check ./src/**/*",
+    "lint": "npm run lint:prettier && npm run lint:script",
+    "fix": "prettier --check ./src/**/* --write && eslint ./src --ext .js,.jsx,.ts,.tsx --fix"
+  },
+  "devDependencies": {
+    "@lxjx/preset-config": "^0.0.4",
+    "axios": "^0.19.2",
+    "express": "^4.17.1",
+    "nodemon": "^2.0.4",
+    "parcel-bundler": "^1.12.4",
+    "rimraf": "^3.0.2",
+    "typescript": "^3.9.2"
+  },
+  "dependencies": {
+    "@lxjx/utils": "^1.4.5",
+    "@types/lodash": "^4.14.155",
+    "lodash": "^4.17.15",
+    "tslib": "^2.0.0"
+  }
+}
