@@ -1,6 +1,6 @@
 import { AxiosRequestConfig, AxiosInstance } from 'axios';
 
-/** request和全局配置中通用的配置，request中传递的组件及配置优先级最高 */
+/** request和全局配置中通用的配置,request中传递的组件及配置优先级最高 */
 export interface BaseOptions {
   /** 接收服务器response，需要返回一个boolean值用于验证该次请求时候成功(状态码等在内部已处理，只需要关系服务器实际返回的data) */
   checkStatus(data: any): boolean;
@@ -38,8 +38,7 @@ export interface extraOption extends BaseOptions {
   [key: string]: any;
 }
 
-
-export interface CreateOptions extends BaseOptions  {
+export interface CreateOptions extends BaseOptions {
   /** axios相关配置 */
   axiosBaseConfig?: AxiosRequestConfig;
 }
@@ -58,16 +57,9 @@ export interface FullOptions extends AxiosRequestConfig {
  * @static common - 常规的Promise版本request，不返回错误优先数组而是常规Promise对象
  * */
 export interface Request {
-  <Data = any>
-  (
-    url: string,
-    options?: FullOptions
-  ): Promise<[any, Data]>;
+  <Data = any>(url: string, options?: FullOptions): Promise<[any, Data]>;
   axiosInstance: AxiosInstance;
-  common: <Data = any>(
-    url: string,
-    options?: FullOptions
-  ) => Promise<Data>
+  common: <Data = any>(url: string, options?: FullOptions) => Promise<Data>;
 }
 
 export default function createRequest(options: CreateOptions): Request;
