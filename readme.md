@@ -4,20 +4,36 @@
 </p>
 
 <br>
-
 <br>
 
+<!-- TOC -->
 
+- [✨features](#features)
+- [📦Installation](#installation)
+- [使用](#%E4%BD%BF%E7%94%A8)
+  - [`axios`](#axios)
+  - [`fetch`](#fetch)
+  - [`node`](#node)
+  - [**`小程序`**](#%E5%B0%8F%E7%A8%8B%E5%BA%8F)
+- [使用插件](#%E4%BD%BF%E7%94%A8%E6%8F%92%E4%BB%B6)
+- [API](#api)
+  - [createInstance()](#createinstance)
+    - [options](#options)
+  - [request()](#request)
+    - [options](#options)
+
+<!-- /TOC -->
+
+<br>
+<br>
 
 ## ✨features
 
-* 几乎支持所有javascript运行时, 可以和任何请求库搭配使用
-* 集中式的错误、操作反馈
-* 全局loading、token等
-* 请求缓存
-* 插件化，可以通过插件来获取更多的能力
-
-
+- 几乎支持所有 javascript 运行时, 可以和任何请求库搭配使用
+- 集中式的错误、操作反馈
+- 全局 loading、token 等
+- 请求缓存
+- 插件化，可以通过插件来获取更多的能力
 
 ## 📦Installation
 
@@ -27,15 +43,13 @@ yarn add @lxjx/request
 npm install @lxjx/request
 ```
 
-
-
 ## 使用
 
 ### `axios`
 
 使用`axios`与常规使用几乎没区别，只需要简单 配置`fetchAdapter` 并将`axios`配置类型传给`createInstance`即可
 
-💡 如果使用js，忽略下面的所有类型声明
+💡 如果使用 js，忽略下面的所有类型声明
 
 ```ts
 import axios, { AxiosRequestConfig } from 'axios'; // 安装axios
@@ -74,7 +88,8 @@ const request = createInstance<AxiosRequestConfig>({
 // { name: string }是返回类型，默认为any
 request<{ name: string }>('http://localhost:3000/user', {
   method: 'get', // 请求配置
-  extraOption: { // 额外配置
+  extraOption: {
+    // 额外配置
     useServeFeedBack: true,
     loading: '请求中...',
   },
@@ -90,13 +105,9 @@ request<{ name: string }>('http://localhost:3000/user', {
 });
 ```
 
-
-
 <br>
 
 <br>
-
-
 
 ### `fetch`
 
@@ -111,79 +122,65 @@ const request = createInstance<RequestInit>({
 });
 
 // { name: string }是返回类型，默认为any
-request<{ name: string }>('http://localhost:3000/user')
-    .then(([err, res]) => {
-      console.log('-----请求完成-----');
-      console.log('err:', err);
-      console.log('res:', res);
+request<{ name: string }>('http://localhost:3000/user').then(([err, res]) => {
+  console.log('-----请求完成-----');
+  console.log('err:', err);
+  console.log('res:', res);
 
-      // 当err存在时表示该次请求包含错误
-      if (err || !res) return;
+  // 当err存在时表示该次请求包含错误
+  if (err || !res) return;
 
-      // 在这里执行请求成功后的操作
-    });
+  // 在这里执行请求成功后的操作
+});
 ```
 
-
-
 <br>
 
 <br>
-
-
 
 ### `node`
 
 在`node`中，依然推荐使用`axios`进行请求，直接采用上方配置。但是通常没必要使用。
 
-
-
 <br>
 
 <br>
 
-
-
-###  **`小程序`**
+### **`小程序`**
 
 通过配置`fetchAdapter`来支持小程序
 
 ```js
 const request = createInstance({
-    fetchAdapter(options) {
-        return new Promise((res, rej) => {
-            wx.request({
-              ...options,
-              success (response) {
-                	res(response);
-              },
-              fail (error) {
-              		rej(error);
-              },
-            })
-        });
-    },
-    // 如果需要缓存， 添加以下配置 (由于小程序端不支持sessionStorage，不推荐进行缓存)
-    setStorageAdapter(key, val) {
-        wx.setStorageSync(key, val);
-    },
-    getStorageAdapter(key) {
-        return wx.getStorageSync(key);
-    },
-    removeStorageAdapter(key) {
-        wx.removeStorageSync(key);
-    }
-})
-
+  fetchAdapter(options) {
+    return new Promise((res, rej) => {
+      wx.request({
+        ...options,
+        success(response) {
+          res(response);
+        },
+        fail(error) {
+          rej(error);
+        },
+      });
+    });
+  },
+  // 如果需要缓存， 添加以下配置 (由于小程序端不支持sessionStorage，不推荐进行缓存)
+  setStorageAdapter(key, val) {
+    wx.setStorageSync(key, val);
+  },
+  getStorageAdapter(key) {
+    return wx.getStorageSync(key);
+  },
+  removeStorageAdapter(key) {
+    wx.removeStorageSync(key);
+  },
+});
 ```
-
-
 
 ## 使用插件
 
-request内部所有配置项、缓存等的功能都是由插件实现的，插件接口也对外提供，可以方便的进行功能扩展
-
-
+request 内部所有配置项、缓存等的功能都是由插件实现的，插件接口也对外提供，可以方便的进行功能扩展
 
 插件为`Plugin` 类的子类，你可以通过重写不同的钩子来为插件实现不同的能力
 
@@ -238,8 +235,6 @@ class Plugin<OPTIONS extends BaseRequestOptions> {
 }
 ```
 
-
-
 以`log` 插件为例
 
 ```ts
@@ -273,14 +268,10 @@ class Log extends Plugin {
 
 ```ts
 const request = createInstance({
-    plugins: [Log], // 会在request进行的每个生命周期进行打印
-	// ...其他配置
-})
+  plugins: [Log], // 会在request进行的每个生命周期进行打印
+  // ...其他配置
+});
 ```
-
-
-
-
 
 ## API
 
@@ -316,8 +307,6 @@ export interface BaseRequestOptions {
   headers?: any;
 }
 ```
-
-
 
 #### options
 
@@ -368,8 +357,6 @@ interface Options<OPTIONS extends BaseRequestOptions> {
 }
 ```
 
-
-
 ### request()
 
 ```ts
@@ -386,8 +373,6 @@ export interface Request<OPTIONS> {
 }
 ```
 
-
-
 #### options
 
 `request()` 的配置为创建实例时通过泛型指定的类型 + 一些额外配置
@@ -396,15 +381,14 @@ export interface Request<OPTIONS> {
 
 ```ts
 requset('/user', {
-    methods: 'POST', // 这里是传递给请求器的配置
-    extraOption: { // 这里是内部提供的额外配置
-        useServeFeedBack: true,
-        loading: '请求中...',
-    },
-})
+  methods: 'POST', // 这里是传递给请求器的配置
+  extraOption: {
+    // 这里是内部提供的额外配置
+    useServeFeedBack: true,
+    loading: '请求中...',
+  },
+});
 ```
-
-
 
 ```ts
 interface ExtraOptions extends Options<any> {
@@ -452,16 +436,3 @@ interface Options<OPTIONS extends BaseRequestOptions> {
   finish?(extraOption: ExtraOptions, requestConfig: MixOpt<OPTIONS>, flag?: any): void;
 }
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
