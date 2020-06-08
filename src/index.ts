@@ -57,7 +57,8 @@ const createInstance: CreateInstance = <OPTIONS extends BaseRequestOptions>(
       cOpt.fetchAdapter!(options)
         /* ======== 预处理 ======= */
         .then(async response => {
-          // 抹平各种场景请求库的response差异, 当为fetch等请求时，需要从json()方法中拿到data并设置到response中
+          // 在此处抹平各种场景请求库的response差异, 当为fetch等请求时，需要从json()方法中拿到data并设置到response中
+          // 1. 确保response的data指向服务器返回的对象
           if (!isObject(response.data) && typeof response.json === 'function') {
             response.data = await response.json();
           }
