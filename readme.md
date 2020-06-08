@@ -8,7 +8,8 @@
 
 <!-- TOC -->
 
-- [✨features](#features)
+- [📑Introduce](#introduce)
+- [✨Features](#features)
 - [📦Installation](#installation)
 - [使用](#%E4%BD%BF%E7%94%A8)
   - [`axios`](#axios)
@@ -17,25 +18,21 @@
   - [**`小程序`**](#%E5%B0%8F%E7%A8%8B%E5%BA%8F)
 - [使用插件](#%E4%BD%BF%E7%94%A8%E6%8F%92%E4%BB%B6)
 - [API](#api)
-  - [createInstance()](#createinstance)
+  - [`createInstance()`](#createinstance)
     - [options](#options)
-  - [request()](#request)
+  - [`request()`](#request)
     - [options](#options)
 
 <!-- /TOC -->
 
+## 📑Introduce
 
-
-## 📑introduce
-
-一个用来简化XHR请求的库
-
-
+一个用来简化 XHR 请求的库
 
 <br>
 <br>
 
-## ✨features
+## ✨Features
 
 - 几乎支持所有 javascript 运行时, 可以和任何请求库(fetch/axios/小程序等)搭配使用
 - 集中式的错误、操作反馈
@@ -43,12 +40,8 @@
 - 请求缓存
 - 插件化，可以通过插件来获取更多的能力
 
-
-
 <br>
 <br>
-
-
 
 ## 📦Installation
 
@@ -58,12 +51,8 @@ yarn add @lxjx/request
 npm install @lxjx/request
 ```
 
-
-
 <br>
 <br>
-
-
 
 ## 使用
 
@@ -86,14 +75,15 @@ const request = createInstance<AxiosRequestConfig>({
 });
 
 interface ResponseType {
-    name: string;
-    age: number;
+  name: string;
+  age: number;
 }
 
 // ResponseType是返回值的类型，默认为any
 request<ResponseType>('/api/user', {
   method: 'get', // 请求配置, 对应上面的<AxiosRequestConfig>
-  extraOption: { // 独立于<AxiosRequestConfig>的额外配置，在此进行一个个性化配置
+  extraOption: {
+    // 独立于<AxiosRequestConfig>的额外配置，在此进行一个个性化配置
     useServeFeedBack: true,
     loading: '请求中...',
   },
@@ -128,8 +118,8 @@ const request = createInstance<RequestInit>({
 });
 
 interface ResponseType {
-    name: string;
-    age: number;
+  name: string;
+  age: number;
 }
 
 // ResponseType是返回类型，默认为any
@@ -197,8 +187,6 @@ const request = createInstance({
 
 request 内部所有配置项、缓存等的功能都是由插件实现的，插件接口也对外提供，可以藉此进行功能扩展。
 
-
-
 插件为`Plugin` 类的子类，你可以通过重写不同的钩子来为插件实现不同的能力
 
 **`Plugin`** 类:
@@ -254,9 +242,7 @@ class Plugin {
 }
 ```
 
-
-
-以`log` 插件为例， 用来log每一个生命周期：
+以`log` 插件为例， 用来 log 每一个生命周期：
 
 ```ts
 import { Plugin } from '@lxjx/request';
@@ -285,8 +271,6 @@ class Log extends Plugin {
 }
 ```
 
-
-
 在`createInstance()`中使用
 
 ```ts
@@ -298,19 +282,13 @@ const request = createInstance({
 });
 ```
 
-
-
 <br>
 
 <br>
-
-
 
 ## API
 
-> 💡 为了方便阅读，所有类型签名都是简化过的，可以在ide中查看更详细的签名信息。
-
-
+> 💡 为了方便阅读，所有类型签名都是简化过的，可以在 ide 中查看更详细的签名信息。
 
 ### `createInstance()`
 
@@ -328,13 +306,9 @@ export interface CreateInstance {
 }
 ```
 
-
-
 <br>
 
 <br>
-
-
 
 #### options
 
@@ -386,13 +360,9 @@ interface Options {
 }
 ```
 
-
-
 <br>
 
 <br>
-
-
 
 ### `request()`
 
@@ -408,7 +378,6 @@ export interface Request {
     readonly [Error | RequestError | null, Data | null]
   >;
 }
-
 
 /**
  * request配置必须遵循的一些字段名
@@ -429,11 +398,7 @@ export interface BaseRequestOptions {
 }
 ```
 
-
-
 <br>
-
-
 
 #### options
 
@@ -444,7 +409,8 @@ export interface BaseRequestOptions {
 ```ts
 requset('/user', {
   methods: 'POST', // 这里是传递给请求器的配置
-  extraOption: { // 这里是内部提供的额外配置
+  extraOption: {
+    // 这里是内部提供的额外配置
     useServeFeedBack: true,
     loading: '请求中...',
   },
