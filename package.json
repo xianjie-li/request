@@ -6,10 +6,10 @@
     "fetch",
     "axios"
   ],
-  "version": "1.0.2",
-  "main": "./umd/index.js",
-  "module": "./esm/index.js",
-  "types": "./dist",
+  "version": "1.1.0",
+  "main": "umd/index.js",
+  "module": "esm/index.js",
+  "types": "esm",
   "repository": "https://github.com/Iixianjie/request",
   "author": {
     "name": "lxj",
@@ -17,11 +17,12 @@
   },
   "license": "MIT",
   "files": [
-    "./esm",
-    "./umd"
+    "esm",
+    "umd",
+    "package.json"
   ],
   "scripts": {
-    "prebuild": "npm run lint && rimraf ./esm ./umd",
+    "prebuild1": "npm run lint && rimraf ./esm ./umd",
     "build": "npm run build:esm && npm run build:umd",
     "build:esm": "tsc",
     "build:umd": "tsc -m UMD --outDir ./umd --declarationDir ./umd",
@@ -34,7 +35,7 @@
     "fix": "prettier --check ./src/**/* --write && eslint ./src --ext .js,.jsx,.ts,.tsx --fix"
   },
   "devDependencies": {
-    "@lxjx/preset-config": "^0.0.4",
+    "@lxjx/preset-config": "^0.1.0",
     "axios": "^0.19.2",
     "express": "^4.17.1",
     "nodemon": "^2.0.4",

@@ -1,18 +1,20 @@
 import { BaseRequestOptions, CreateOptions, ExtraOptions, MixOpt, Options } from './interfaces';
 import { RequestError } from './RequestError';
 
-export class Plugin<OPTIONS extends BaseRequestOptions> {
+export class Plugin<OPTIONS extends BaseRequestOptions, ExtraExpand = any> {
   constructor(
     public ctx: any, // 在不同插件间共享数据的对象
-    public createOptions: CreateOptions<OPTIONS>, // 创建时配置
-    public options: MixOpt<OPTIONS>, // request中传入的配置
-    public extraOptions: ExtraOptions, // 等于options.extraOptions // eslint-disable-next-line no-empty-function // eslint-disable-next-line no-empty-function
+    public createOptions: CreateOptions<OPTIONS, ExtraExpand>, // 创建时配置
+    public options: MixOpt<OPTIONS, ExtraExpand>, // request中传入的配置
+    public extraOptions: ExtraOptions<ExtraExpand>, // 等于options.extraOptions // eslint-disable-next-line no-empty-function // eslint-disable-next-line no-empty-function
   ) {}
 
   /**
    * 帮助函数，从extraOptions或createOptions中取出指定名称的方法，前者优先级更高
    * */
-  getCurrentOption<key extends keyof Options<OPTIONS>>(optionField: key): Options<OPTIONS>[key] {
+  getCurrentOption<key extends keyof Options<OPTIONS, ExtraExpand>>(
+    optionField: key,
+  ): Options<OPTIONS, ExtraExpand>[key] {
     return this.extraOptions[optionField] || this.createOptions[optionField];
   }
 

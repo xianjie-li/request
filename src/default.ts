@@ -1,10 +1,8 @@
 import { dumpFn } from '@lxjx/utils';
 import { BaseRequestOptions, CreateOptions } from './interfaces';
 
-export const defaultCreateConfig: Partial<CreateOptions<BaseRequestOptions>> = {
-  fetchAdapter: ({ url, ...options }: any) => {
-    return fetch(url, options);
-  },
+export const defaultCreateConfig: Partial<CreateOptions<BaseRequestOptions, any>> = {
+  fetchAdapter: ({ url, ...options }: any) => fetch(url, options),
   setStorageAdapter(key, val) {
     sessionStorage.setItem(key, JSON.stringify(val));
   },

@@ -1,26 +1,36 @@
 import _defaultsDeep from 'lodash/defaultsDeep';
 import { AnyObject, isObject } from '@lxjx/utils';
-import { BaseRequestOptions, CreateInstance, CreateOptions, MixOpt, Request } from './interfaces';
+import {
+  BaseRequestOptions,
+  CreateInstance,
+  CreateOptions,
+  ExtraOptions,
+  MixOpt,
+  Request,
+} from './interfaces';
 import { defaultCreateConfig } from './default';
 import { CacheBeforePlugin } from './plugins/CacheBeforePlugin';
 import { CorePlugin } from './plugins/CorePlugin';
 import { CachePlugin } from './plugins/CachePlugin';
 
-const createInstance: CreateInstance = <OPTIONS extends BaseRequestOptions>(
-  createOptions: CreateOptions<OPTIONS>,
+const createInstance: CreateInstance = <OPTIONS extends BaseRequestOptions, ExtraExpand = {}>(
+  createOptions: CreateOptions<OPTIONS, ExtraExpand>,
 ) => {
   // 创建时配置
   const cOpt = {
     ...defaultCreateConfig,
     ...createOptions,
     plugins: [CacheBeforePlugin, CorePlugin, ...(createOptions.plugins || []), CachePlugin],
-  } as CreateOptions<OPTIONS>;
+  } as CreateOptions<OPTIONS, ExtraExpand>;
 
   const { baseOptions } = cOpt;
 
-  const request: Request<OPTIONS> = (url: string, optionsArg?: MixOpt<OPTIONS>) => {
+  const request: Request<OPTIONS, ExtraExpand> = (
+    url: string,
+    optionsArg?: MixOpt<OPTIONS, ExtraExpand>,
+  ) => {
     // 请求时配置
-    const options: MixOpt<OPTIONS> = _defaultsDeep(
+    const options: MixOpt<OPTIONS, ExtraExpand> = _defaultsDeep(
       {
         url,
       },
@@ -34,7 +44,7 @@ const createInstance: CreateInstance = <OPTIONS extends BaseRequestOptions>(
     );
 
     // 额外配置
-    const extra = options.extraOption || {};
+    const extra = options.extraOption || ({} as ExtraOptions<ExtraExpand>);
 
     const ctx: AnyObject = {};
 
@@ -105,6 +115,19 @@ const createInstance: CreateInstance = <OPTIONS extends BaseRequestOptions>(
         })
     );
   };
+
+  request.promise = (url, options) =>
+    new Promise((resolve, reject) => {
+      request(url, options)
+        .then(([err, res]) => {
+          if (err) {
+            reject(err);
+            return; // ? 好像不用写
+          }
+          resolve(res);
+        })
+        .catch(reject);
+    });
 
   return request;
 };
