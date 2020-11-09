@@ -8,20 +8,18 @@
 
 <!-- TOC -->
 
-- [📑Introduce](#introduce)
-- [✨Features](#features)
-- [📦Installation](#installation)
-- [使用](#%E4%BD%BF%E7%94%A8)
-  - [`axios`](#axios)
-  - [`fetch`](#fetch)
-  - [`node`](#node)
-  - [**`小程序`**](#%E5%B0%8F%E7%A8%8B%E5%BA%8F)
-- [使用插件](#%E4%BD%BF%E7%94%A8%E6%8F%92%E4%BB%B6)
+- [📑Introduce](#📑introduce)
+- [✨Features](#✨features)
+- [📦Installation](#📦installation)
+- [使用](#使用)
+  - [浏览器环境](#浏览器环境)
+  - [其他环境](#其他环境)
+- [使用插件](#使用插件)
 - [API](#api)
   - [`createInstance()`](#createinstance)
     - [options](#options)
   - [`request()`](#request)
-    - [options](#options)
+    - [options](#options-1)
 
 <!-- /TOC -->
 
@@ -159,7 +157,7 @@ request
 
 <br>
 
-### **`其他环境`**
+### 其他环境
 
 在其他客户端宿主环境使用(ReactNative/小程序等)时，除了适配器配置外，还需额外配置缓存方式，如果不需要缓存功能可以跳过。
 
