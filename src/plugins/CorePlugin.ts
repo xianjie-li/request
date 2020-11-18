@@ -36,7 +36,7 @@ export class CorePlugin extends Plugin<any> {
      * 3. Error.message
      * 4. 未知错误
      * */
-    if (!this.extraOptions.quiet && error && feedback) {
+    if (/* !this.extraOptions.quiet && 可能会在quite模式下取err.message的值 */ error) {
       const errMessage = error.message;
 
       /** 从服务器返回中取出的msg */
@@ -64,7 +64,7 @@ export class CorePlugin extends Plugin<any> {
       // 将Error对象的msg改为与反馈的msg一致, 方便使用
       error.message = finalMsg;
 
-      feedback?.(finalMsg, false, this.extraOptions, this.options);
+      !this.extraOptions.quiet && feedback?.(finalMsg, false, this.extraOptions, this.options);
     }
   }
 

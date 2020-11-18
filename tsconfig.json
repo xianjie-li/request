@@ -5,6 +5,9 @@
   "exclude": [
     "node_modules"
   ],
+  "include": [
+    "./src"
+  ],
   "compilerOptions": {
     "typeRoots": [
       "./local.d.ts"
